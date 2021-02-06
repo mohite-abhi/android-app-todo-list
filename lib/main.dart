@@ -115,18 +115,20 @@ class _State extends State<MyList> {
   TextEditingController taskToAdd = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    var temp;
     if (start == 1) {
       readCounter(_nameList).then((String nameValue) {
         print(nameValue);
         if (nameValue == "" || nameValue == "[]") {
-          List<List<String>> temp = [
+          temp = [
             <String>["All Done", "1"]
           ];
           writeCounter(temp, _nameList);
           //writeCounter(<String>["1"], _colorList);
+        } else {
+          temp = jsonDecode(nameValue);
         }
         setState(() {
-          var temp = jsonDecode(nameValue);
           for (var i = 0; i < temp.length; i++) {
             names.add(<String>["", ""]);
             names[i][0] = temp[i][0];
@@ -230,33 +232,26 @@ class _State extends State<MyList> {
                     color: Colors.white,
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          TextFormField(
-                            controller: taskToAdd,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'Plese update some text';
-                              }
-                              return null;
-                            },
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState.validate()) {
-                                setState(() {
-                                  names.insert(0, [taskToAdd.text, "0"]);
-                                  writeCounter(names, _nameList);
-                                  lastNotDone += 1;
-                                });
-                              }
-                              taskToAdd.text = '';
-                              Navigator.pop(context);
-                            },
-                            child: Text('Submit'),
-                          ),
-                        ],
+                      child: TextFormField(
+                        autofocus: true,
+                        controller: taskToAdd,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'task empty!';
+                          }
+                          return null;
+                        },
+                        onFieldSubmitted: (value) {
+                          if (_formKey.currentState.validate()) {
+                            setState(() {
+                              names.insert(0, [taskToAdd.text, "0"]);
+                              writeCounter(names, _nameList);
+                              lastNotDone += 1;
+                            });
+                            taskToAdd.text = '';
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                     ),
                   ),
