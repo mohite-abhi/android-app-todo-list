@@ -8,7 +8,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,40 +16,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-/*
-class Tasks extends StatelessWidget {
-  final List<String> names = <String>[
-    'Aby',
-    'Aish',
-    'Ayan',
-    'Ben',
-    'Bob',
-    'Charlie',
-    'Cook',
-    'Carline'
-  ];
-  final List<int> msgCount = <int>[2, 0, 10, 6, 52, 4, 0, 2];
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Beautiful Tasks!'),
-      ),
-      body: Center(
-        child: MyList(
-          names: names,
-          msgCount: msgCount,
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: ()=>{MyList.setState((){names.add('abhishek'), msgCount.add(12)});},
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
-    );
-  }
-}
-*/
 
 class MyList extends StatefulWidget {
   @override
@@ -94,23 +59,24 @@ class _State extends State<MyList> {
     try {
       final file = await _localFile;
 
-      // Read the file.
       String contents = await file.readAsString();
 
       return contents;
     } catch (e) {
-      // If encountering an error, return 0.
       return "[]";
     }
   }
 
-  Color color = Colors.redAccent;
   List<List<String>> names = [];
 
-  List<Color> listColors = <Color>[Colors.redAccent, Colors.greenAccent];
+  final scaffoldColor = Colors.purpleAccent;
+  List<Color> listColors = <Color>[
+    Color.fromRGBO(255, 128, 62, 100),
+    Color.fromRGBO(63, 142, 255, 100)
+  ];
   List<String> colorsBit = <String>[];
   int start = 1;
-  int lastNotDone = 0;
+  int tasksNotDone = 0;
   final _formKey = GlobalKey<FormState>();
   TextEditingController taskToAdd = TextEditingController();
   @override
@@ -118,13 +84,11 @@ class _State extends State<MyList> {
     var temp;
     if (start == 1) {
       readCounter(_nameList).then((String nameValue) {
-        print(nameValue);
         if (nameValue == "" || nameValue == "[]") {
           temp = [
             <String>["All Done", "1"]
           ];
           writeCounter(temp, _nameList);
-          //writeCounter(<String>["1"], _colorList);
         } else {
           temp = jsonDecode(nameValue);
         }
@@ -134,29 +98,17 @@ class _State extends State<MyList> {
             names[i][0] = temp[i][0];
             names[i][1] = temp[i][1];
             if (temp[i][1] == "0") {
-              lastNotDone += 1;
+              tasksNotDone += 1;
             }
           }
-          /*
-          for (var i = 0; i < temp.length; i++) {
-            names.add(jsonDecode(temp[i]));
-          }
-*/
-          //print(names);
-          //print(names.length);
           start = 0;
         });
       });
-      /*
-      readCounter(_colorList).then((String colorValue) {
-        print(colorValue);
-        //colorsBit = json.decode(colorValue).cast<int>();
-        print(colorsBit);
-      });*/
     }
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromRGBO(138, 255, 127, 100),
         title: Text('Beautiful Tasks!'),
       ),
       body: Center(
@@ -167,25 +119,17 @@ class _State extends State<MyList> {
                   itemCount: names.length,
                   itemBuilder: (BuildContext context, int index) {
                     final item = names[index][0];
-                    //print(item);
-
                     return Dismissible(
-                      // Each Dismissible must contain a Key. Keys allow Flutter to
-                      // uniquely identify widgets.
                       key: Key(item),
-                      // Provide a function that tells the app
-                      // what to do after an item has been swiped away.
                       onDismissed: (direction) {
-                        // Remove the item from the data source.
                         setState(() {
                           if (names[index][1] == "0") {
-                            lastNotDone -= 1;
+                            tasksNotDone -= 1;
                           }
                           names.removeAt(index);
                           writeCounter(names, _nameList);
                         });
 
-                        // Then show a snackbar.
                         Scaffold.of(context).showSnackBar(
                             SnackBar(content: Text("$item dismissed")));
                       },
@@ -193,7 +137,7 @@ class _State extends State<MyList> {
                         child: Container(
                           color: listColors[int.parse(names[index][1])],
                           height: 50,
-                          margin: EdgeInsets.all(2),
+                          margin: EdgeInsets.all(4),
                           child: Center(
                               child: Text(
                             '${item} ',
@@ -202,15 +146,16 @@ class _State extends State<MyList> {
                         ),
                         onTap: () {
                           setState(() {
-                            if (names[index][1] == "0") {
+                            var names1 = names;
+                            if (names1[index][1] == "0") {
                               List temp;
-                              temp = names[lastNotDone - 1];
-                              names[lastNotDone - 1] = names[index];
-                              names[index] = temp;
-                              names[lastNotDone - 1][1] = "1";
-                              writeCounter(names, _nameList);
-                              if (lastNotDone > 0) {
-                                lastNotDone -= 1;
+                              temp = names1[index];
+                              temp[1] = "1";
+                              names1.removeAt(index);
+                              names1.insert(tasksNotDone - 1, temp);
+                              writeCounter(names1, _nameList);
+                              if (tasksNotDone > 0) {
+                                tasksNotDone -= 1;
                               }
                             }
                           });
@@ -221,38 +166,37 @@ class _State extends State<MyList> {
         ]),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color.fromRGBO(255, 128, 62, 100),
         onPressed: () => {
           showDialog(
               context: context,
               builder: (context) {
                 return Dialog(
-                  child: Container(
-                    height: 100.0,
-                    width: 860.0,
-                    color: Colors.white,
-                    child: Form(
-                      key: _formKey,
-                      child: TextFormField(
-                        autofocus: true,
-                        controller: taskToAdd,
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'task empty!';
-                          }
-                          return null;
-                        },
-                        onFieldSubmitted: (value) {
-                          if (_formKey.currentState.validate()) {
-                            setState(() {
-                              names.insert(0, [taskToAdd.text, "0"]);
-                              writeCounter(names, _nameList);
-                              lastNotDone += 1;
-                            });
-                            taskToAdd.text = '';
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
+                  child: Form(
+                    key: _formKey,
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Enter some task'),
+                      autofocus: true,
+                      controller: taskToAdd,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'task empty!';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) {
+                        if (_formKey.currentState.validate()) {
+                          setState(() {
+                            names.insert(0, [taskToAdd.text, "0"]);
+                            writeCounter(names, _nameList);
+                            tasksNotDone += 1;
+                          });
+                          taskToAdd.text = '';
+                          Navigator.pop(context);
+                        }
+                      },
                     ),
                   ),
                 );
