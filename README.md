@@ -2,6 +2,8 @@
 
 A new Flutter project.
 
+The apks for installation are found at build/app/outputs/apk/release/
+
 ## Getting Started
 
 This project a Flutter application.
