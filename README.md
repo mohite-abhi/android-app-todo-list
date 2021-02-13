@@ -2,7 +2,7 @@
 
 A new Flutter project.
 
-The apks for installation are found at build/app/outputs/apk/release/
+The apks for installation are found at apks-for-installation folder
 
 ## Getting Started
 
